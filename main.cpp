@@ -34,11 +34,11 @@ void initialize(GameBoard &gb) {
     unsigned char testSquareJumpBoard[8][8] = {
             {0, 0, 0, 0, 0, 0, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 2, 0, 2, 0, 2, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 2, 0, 0, 0, 0},
+            {0, 0, 0, 2, 0, 2, 0, 0},
             {0, 0, 0, 0, 3, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0},
+            {0, 0, 0, 2, 0, 2, 0, 0},
             {0, 0, 0, 0, 0, 0, 0, 0}
     };
     //gb.setBoard(initialBoard);
@@ -90,12 +90,18 @@ int main () {
     initialize(playingboard);
     playingboard.printBoard();
 
+
+    playingboard.getAllP1Moves();
+    playingboard.printAllP1Moves();
+
+
+
     //doTestNextMove(playingboard);
     //playingboard.printPiece();
-    P1NextBoards p1(playingboard);
-    std::cout<<"DO MOVE P1()"<<std::endl;
-    p1.doMoveP1();
-    std::cout<<"PAST DO MOVE P1()"<<std::endl;
+    //P1NextBoards p1(playingboard);
+    //std::cout<<"DO MOVE P1()"<<std::endl;
+    //p1.doMoveP1();
+    //std::cout<<"PAST DO MOVE P1()"<<std::endl;
 
     /*std::cout<<"*** all possible boards: " <<p1.size()<<" ***"<<std::endl;
     for(int i=0; i<p1.size(); ++i) {
@@ -105,25 +111,25 @@ int main () {
 
 
     //std::cout << "CHOOSE BOARD getNextSteps(idx)" << std::endl;
-    GameBoard *pgb = new GameBoard(playingboard);
-    std::cout<<"CREATED *pgb"<<std::endl;
+    //GameBoard *pgb = new GameBoard(playingboard);
+    //pgb->printBoard();
+    //std::cout<<"CREATED *pgb"<<std::endl;
 
     /*NextSteps *ns = p1.getNextSteps(1);
     for(int i=0; i<ns->steps.size(); ++i) {
         Step t = ns->steps[i];
         pgb->doMove(t.start, t.end);
     }*/
-    pgb->printBoard();
-    std::cout << "Your Possible Moves" << std::endl;
-    p1.displayAllMoves();
-    std::cout << "ALL MOVES DISPLAYED" << std::endl;
+    //pgb->printBoard();
+    //std::cout << "Your Possible Moves" << std::endl;
+    //p1.displayAllMoves();
+    //std::cout << "ALL MOVES DISPLAYED" << std::endl;
 
-    int choiceIdx = requestMoveInput();
-    GameBoard *gb = p1.getBoard(2);
-    playingboard.setBoard(gb->board);
-    playingboard.printBoard();
+    //int choiceIdx = requestMoveInput();
+    //GameBoard *gb = p1.getBoard(2);
+    //playingboard.setBoard(gb->board);
+    //playingboard.printBoard();
     //ns->print();
-
     return 0;
 
 }

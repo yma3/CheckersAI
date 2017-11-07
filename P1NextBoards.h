@@ -22,7 +22,7 @@ public:
     void print() {
         for(int i=0; i<steps.size(); ++i) {
             Step t = steps[i];
-            std::cout<< t.start.toString() <<" -> " <<t.end.toString()<<std::endl;
+            //std::cout<< t.start.toString() <<" -> " <<t.end.toString()<<std::endl;
         }
     }
 };

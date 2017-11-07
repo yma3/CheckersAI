@@ -110,7 +110,7 @@ void P1NextBoards::doMoveP1() {
     std::cout << "CREATE BOARD WITHOUT LOOP STEPS" << std::endl;
 // create boards without loop steps
     for(int i=0; i<256; ++i) {
-        std::cout << "i: " << i << std::endl;
+        //std::cout << "i: " << i << std::endl;
         if(eList[i] == 0) continue;
 
         if(sList[i] > 0) continue; //it's a middle node

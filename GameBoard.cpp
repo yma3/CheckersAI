@@ -118,3 +118,111 @@ void GameBoard::setHeuristic() {
     //std::cout << "\033[7;0m";
     return;
 }
+
+bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb,std::vector<std::vector<XY>> &mylistOfMoves, int moveNum) {
+    std::cout << "STARTING FROM " << (int)cc.x << " , " << (int)cc.y << std::endl;
+    bool isLastMove = true;
+    int currval = board[cc.x][cc.y];
+    GameBoard *gb = new GameBoard();
+    gb->setBoard(board);
+    if(player1) {REGULAR = 2; KINGVAL = 4;}
+    else {REGULAR = 1; KINGVAL = 3;}
+
+    //TOP LEFT
+    if(cc.x > 0 && cc.y > 0) {
+        XY target(cc.x-1, cc.y-1);
+        int tarVal = board[target.x][target.y];
+        if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x-1][target.y-1] == 0 && (target.x > 0 && target.y > 0)) {
+            std::cout << "TOP LEFT!" << std::endl;
+            //ADD JUMP TO LIST
+            gb->setBoard(board);
+            XY jumpTo(target.x-1, target.y-1);
+
+            gb->doMove(cc, jumpTo);
+            mylistOfMoves[moveNum].push_back(jumpTo);
+            //gb->printBoard();
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, mylistOfMoves, moveNum));
+            //std::cout << isLastMove << " :isLastMove" << std::endl;
+        }
+    }
+    //TOP RIGHT
+    if(cc.x > 0 && cc.y < 7) {
+        XY target(cc.x-1, cc.y+1);
+        int tarVal = board[target.x][target.y];
+        if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x-1][target.y+1] == 0 && (target.x > 0 && target.y < 7)) {
+            std::cout << "TOP RIGHT!" << std::endl;
+            //ADD JUMP TO LIST
+            gb->setBoard(board);
+            XY jumpTo(target.x-1, target.y+1);
+            gb->doMove(cc, jumpTo);
+            mylistOfMoves[moveNum].push_back(jumpTo);
+            //gb->printBoard();
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, mylistOfMoves, moveNum));
+        }
+    }
+    //BOTTOM LEFT
+    if((cc.x < 7 && cc.y > 0) || currval > 2) {
+        XY target(cc.x+1, cc.y-1);
+        int tarVal = board[target.x][target.y];
+        if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x+1][target.y-1] == 0 && (target.x < 7 && target.y > 0)) {
+            std::cout << "BOTTOM LEFT!" << std::endl;
+            //ADD JUMP TO LIST
+            gb->setBoard(board);
+            XY jumpTo(target.x+1, target.y-1);
+            gb->doMove(cc, jumpTo);
+            mylistOfMoves[moveNum].push_back(jumpTo);
+            //gb->printBoard();
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, mylistOfMoves, moveNum));
+        }
+    }
+
+    //BOTTOM RIGHT
+    if((cc.x < 7 && cc.y < 7) || currval > 2) {
+        
+        XY target(cc.x+1, cc.y+1);
+        int tarVal = board[target.x][target.y];
+        if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x+1][target.y+1] == 0 && (target.x < 7 && target.y < 7)) {
+            std::cout << "BOTTOM RIGHT! " << std::endl;
+            //ADD JUMP TO LIST
+            gb->setBoard(board);
+            XY jumpTo(target.x+1, target.y+1);
+            gb->doMove(cc, jumpTo);
+            mylistOfMoves[moveNum].push_back(jumpTo);
+            //gb->printBoard();
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, mylistOfMoves, moveNum));
+        }
+    }  
+
+    //std::cout << "NO MORE MOVES HERE" << std::endl;
+
+    //std::cout << "isLastMove: " << isLastMove << std::endl;
+    //std::cout << "++++++++++++" << std::endl;
+    if(isLastMove) {
+        //push onto vector
+        //gb->printBoard();
+        //std::cout << "PUSHING BACK INTO VECTOR" << std::endl;
+        myvectofgb.push_back(gb);
+        moveNum++;
+        //std::cout << "Push successful. Size of vector is: " << vectOfGb.size() << std::endl;
+        return false;
+    }
+    //std::cout << "RETURNING TRUE" << std::endl;
+    return false;
+}
+
+void GameBoard::getAllP1Moves() {
+    for(int i = 0; i < number_P1_pieces; i++) {
+        std::cout << "FOR PIECE: " << i << std::endl;
+        XY cc = P1_pieces[i];
+        std::cout << cc.toString() << std::endl;
+        getMoves(cc, board, vectOfGb);
+    }
+}
+
+void GameBoard::printAllP1Moves() {
+    std::cout << "vectofGb size: " << vectOfGb.size() << std::endl;
+    for(int i = 0; i < vectOfGb.size(); i++) {
+        std::cout << "====================" << std::endl;
+        vectOfGb[i]->printBoard();
+    }
+}

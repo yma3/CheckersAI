@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 namespace std {
     template <typename T>
@@ -48,6 +49,10 @@ public:
     XY P2_pieces[12];
     int number_P1_pieces = 0;
     int number_P2_pieces = 0;
+    bool player1 = true;
+    int REGULAR, KINGVAL;
+    std::vector<GameBoard*> vectOfGb;
+    std::vector<std::vector<XY>> listOfMoves;
 
     GameBoard(){}
     void setBoard(unsigned char myboard[][8]);
@@ -61,9 +66,9 @@ public:
     void printPiece();
     void printBoard();
 
-    int topRight(XY xy, int dist) {
-
-    }
+    bool getMoves(XY cc, unsigned char board[][8],std::vector<GameBoard*> &myvectofgb,std::vector<XY> &mylistOfMoves, int moveNum);
+    void getAllP1Moves();
+    void printAllP1Moves();
 
     void flipBoard();
 
