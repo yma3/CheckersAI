@@ -93,7 +93,7 @@ int main () {
 
     playingboard.getAllP1Moves();
     playingboard.printAllP1Moves();
-
+    //playingboard.printP1MoveList();
 
 
     //doTestNextMove(playingboard);

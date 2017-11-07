@@ -9,6 +9,8 @@
 #include <iostream>
 #include <vector>
 
+#include "Moves.h"
+
 namespace std {
     template <typename T>
     std::string to_string(T val) {
@@ -51,8 +53,12 @@ public:
     int number_P2_pieces = 0;
     bool player1 = true;
     int REGULAR, KINGVAL;
+
+    int numOfMoves = 0;
+    int pathNum = 0;
+
     std::vector<GameBoard*> vectOfGb;
-    std::vector<std::vector<XY>> listOfMoves;
+    //std::vector<std::vector<Moves>> listOfMoves;
 
     GameBoard(){}
     void setBoard(unsigned char myboard[][8]);
@@ -66,9 +72,10 @@ public:
     void printPiece();
     void printBoard();
 
-    bool getMoves(XY cc, unsigned char board[][8],std::vector<GameBoard*> &myvectofgb,std::vector<XY> &mylistOfMoves, int moveNum);
+    bool getMoves(XY cc, unsigned char board[][8],std::vector<GameBoard*> &myvectofgb);//std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum);
     void getAllP1Moves();
     void printAllP1Moves();
+    void printP1MoveList();
 
     void flipBoard();
 
