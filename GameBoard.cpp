@@ -414,10 +414,15 @@ void GameBoard::getAllP2Moves() {
         getMoves(NULL, cc, board, vectOfGb); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
         listOfMoves.push_back(currentPieceSteps);
         std::cout << i << " hasJump?: " << hasAJump << std::endl;
+    }
+    if(!hasAJump) {
+        vectOfGb.clear();
+    }
     //MOVE TO IF FOR MORE EFFICIENCY
     //std::cout << "vect size: " << vectOfGb.size() << std::endl;
+    for(int i = 0; i < number_P2_pieces; i++) {
+        XY cc = P2_pieces[i];
         if(!hasAJump) {
-            vectOfGb.pop_back();
             std::cout << "cleared!, " << vectOfGb.size() << std::endl;
             getRegularMoves(cc, board, vectOfGb);
         }
