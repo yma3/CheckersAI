@@ -107,6 +107,10 @@ public:
     int pathNum = 0;
 
     std::vector<GameBoard*> vectOfGb;
+    XY XYMovesList[12]; //Cannot have more than 12 jumps!
+    XY XYMovesList2[12]; //Cannot have more than 12 jumps!
+    int pathlength;
+    //int moveListIdx = 0;
     //std::vector<std::vector<Moves>> listOfMoves;
 	std::vector<PieceSteps *> listOfMoves;
 	PieceSteps *currentPieceSteps;
@@ -114,8 +118,8 @@ public:
 
     GameBoard(){}
     void setBoard(unsigned char myboard[][8]);
-    void setHeuristic();
-    int getHeuristic() {setHeuristic(); return heuristicValue;}
+    void setHeuristic(int usernum);
+    int getHeuristic(int usernum) {setHeuristic(usernum); return heuristicValue;}
 
     void setPieces();
     XY* getP1Pieces() {return P1_pieces;}
@@ -126,13 +130,18 @@ public:
     void printInfo();
     
     void doMove(XY start, XY end);
-	bool getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb);//std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum);
-    void getRegularMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb);
-    void getAllP1Moves();
-    void getAllP2Moves();
+	bool getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, XY list[], int pathlength, bool requestMove, int *moveListIdx);//std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum);
+    void getRegularMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, bool requestMove, int *moveListIdx);
+    void getAllP1Moves(bool requestMove, int *moveListIdx);
+    void getAllP2Moves(bool requestMove, int *moveListIdx);
+
+    void getMovesGeneral(int userplayernum, int *idx);
+
 
     void printAllP1Moves();
     void printP1MoveList();
+    void printXYMovesList(XY list[], int plength, int *moveListIdx);
+
 
     bool isWin();
     //int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer);

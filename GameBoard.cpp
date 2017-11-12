@@ -68,9 +68,12 @@ void GameBoard::printPiece() {
 
 
 void GameBoard::printBoard() {
-    std::cout << std::endl << "=================================";
+    std::cout << std::endl << "   =================================";
+    std::cout << std::endl << "   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |";
+
     for (int i = 0; i <8; i++) {
-        std::cout << std::endl << "+---+---+---+---+---+---+---+---+"<< std::endl;
+        std::cout << std::endl << "---+---+---+---+---+---+---+---+---+"<< std::endl;
+        std::cout << " " << i << " ";
         for(int j = 0; j < 8; j++) {
             int boardval = board[i][j];
             std::cout << "|";
@@ -88,7 +91,7 @@ void GameBoard::printBoard() {
                 else if (boardval == 3)
                     std::cout << "\033[0;96;40m " << "8" << " " << "\033[0m";
                 else if (boardval == 4)
-                    std::cout << "\033[0;96;40m " << "8" << " " << "\033[0m";   
+                    std::cout << "\033[0;91;40m " << "8" << " " << "\033[0m";   
             }
             else {
                 std::cout << "  " << " " << "\033[0m";
@@ -98,19 +101,19 @@ void GameBoard::printBoard() {
             }
         }
         if(i == 7) {
-            std::cout << std::endl << "+---+---+---+---+---+---+---+---+"<< std::endl;
+            std::cout << std::endl << "---+---+---+---+---+---+---+---+---+"<< std::endl;
         }
     }
     printInfo();
 }
 
 void GameBoard::printInfo() {
-    std::cout << "================================="<< std::endl;
-    std::cout << "Player 1: " << "\033[0;96;40m   " << "o" << " " << "\033[0m" << "     ";
-    std::cout << "Player 2: " << "\033[0;91;40m " << "o" << " " << "\033[0m" << std::endl;
-    std::cout << "Player 1 K: " << "\033[0;96;40m " << "8" << " " << "\033[0m" << "   ";
-    std::cout << "Player 2 K: " << "\033[0;91;40m " << "8" << " " << "\033[0m" <<std::endl;
-    std::cout << "================================="<< std::endl;
+    std::cout << "===================================="<< std::endl;
+    std::cout << " Player 1:  " << "\033[0;96;40m  " << "o" << " " << "\033[0m" << "     ";
+    std::cout << " Player 2: " << "\033[0;91;40m " << "o" << " " << "\033[0m" << std::endl;
+    std::cout << " Player 1 K: " << "\033[0;96;40m " << "8" << " " << "\033[0m" << "   ";
+    std::cout << " Player 2 K: " << "\033[0;91;40m " << "8" << " " << "\033[0m" <<std::endl;
+    std::cout << "===================================="<< std::endl;
 }
 
 
@@ -134,7 +137,7 @@ void GameBoard::flipBoard() {
     }
 }
 
-void GameBoard::setHeuristic() {
+void GameBoard::setHeuristic(int usernum) {
     int player2score = 0;
     int player1score = 0;
     int edgeweight = 0;
@@ -142,7 +145,7 @@ void GameBoard::setHeuristic() {
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
             if(i == 0 || i == 7 || j == 0 || j == 7) {
-                edgeweight = 2;
+                edgeweight = 0;
             }
             else {
                 edgeweight = 0;
@@ -156,19 +159,18 @@ void GameBoard::setHeuristic() {
                 case 4: player1score += 10+edgeweight; break;
             }
             if(i < 4 && (pieceVal == 1)) {
-                player1score += 2;
+                player1score += 0;
             }
             if(i > 4 && pieceVal == 2) {
-                player2score +=2;
+                player2score +=0;
             }
-    
             //std::cout << "MAXSCORE: " << player2score << "MINSCORE: " << player1score << std::endl;
         }
-
-
-
     }
-    heuristicValue = player1score - player2score;
+    if((usernum) == 1)
+        heuristicValue = player1score - player2score;
+    else
+        heuristicValue = player2score - player1score;
     //std::cout << "\033[7;47m" << "SCORE: " << heuristicValue<< std::endl;
     //std::cout << "\033[7;0m";
     return;
@@ -182,12 +184,20 @@ void GameBoard::doMove(XY start, XY end) {
     }
     board[end.x][end.y] = board[start.x][start.y];
     board[start.x][start.y] = 0;
+    for(int j = 0; j < 8; j++) {
+        if(board[0][j] == 1) {
+            board[0][j] = 3;
+        }
+        if(board[7][j] == 2) {
+            board[7][j] = 4;
+        }
+    }
 }
 
 
 
 
-bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb) { //std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum) {
+bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, XY list[], int pathlength, bool requestMove, int *moveListIdx) { //std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum) {
     /*XY orig;
     if(movePathNum == 0) {
         std::vector<Moves> newCol;
@@ -195,7 +205,11 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
         movePathNum;
         orig = cc;
     }*/
-
+    if(isRoot) {
+        pathlength = 0;
+    }
+    list[pathlength] = cc;
+    int currentlength = pathlength;
 
     //std::cout << "STARTING FROM " << (int)cc.x << " , " << (int)cc.y << std::endl;
     bool isLastMove = true;
@@ -223,7 +237,12 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
 				currentPieceSteps->add(pSteps);
 			}
 			pSteps->add(cc, jumpTo);
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb)); //, mylistOfMoves, moveNum, ++movePathNum));
+            //++pathlength;
+            //std::cout << "JUMPED LEFT! PATHLENGTH: " << pathlength << "  JUMPTO: " << jumpTo.toString() << std::endl;
+            //list[pathlength] = jumpTo;
+            //printXYMovesList(list, pathlength);
+
+            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx)); //, mylistOfMoves, moveNum, ++movePathNum));
             //std::cout << isLastMove << " :isLastMove" << std::endl;
         }
     }
@@ -246,7 +265,11 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
 				currentPieceSteps->add(pSteps);
 			}
 			pSteps->add(cc, jumpTo);
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb)); //, mylistOfMoves, moveNum, ++movePathNum));
+            //pathlength++;
+            //list[pathlength] = jumpTo;
+            //printXYMovesList(list, pathlength);
+
+            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx)); //, mylistOfMoves, moveNum, ++movePathNum));
         }
     }
     //BOTTOM LEFT
@@ -269,8 +292,11 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
 				currentPieceSteps->add(pSteps);
 			}
 			pSteps->add(cc, jumpTo);
+            //pathlength++;
+            //list[pathlength] = jumpTo;
+            //printXYMovesList(list, pathlength);
 
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb)); //, mylistOfMoves, moveNum, ++movePathNum));
+            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx)); //, mylistOfMoves, moveNum, ++movePathNum));
         }
     }
     //BOTTOM RIGHT
@@ -293,8 +319,11 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
 				currentPieceSteps->add(pSteps);
 			}
 			pSteps->add(cc, jumpTo);
+            //pathlength++;
+            //list[pathlength] = jumpTo;
+            //printXYMovesList(list, pathlength);
 
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb)); //, mylistOfMoves, moveNum, ++movePathNum));
+            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx)); //, mylistOfMoves, moveNum, ++movePathNum));
         }
     }  
 
@@ -302,14 +331,20 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
 
     //std::cout << "isLastMove: " << isLastMove << std::endl;
     //std::cout << "++++++++++++" << std::endl;
-    if(isLastMove) {
+    if(isLastMove && pathlength != 0) {
         //push onto vector
         //gb->printBoard();
         //std::cout << "PUSHING BACK INTO VECTOR" << std::endl;
+        //std::cout << "PATHLENGTH: " << pathlength << std::endl;
+        if(requestMove) {
+            printXYMovesList(list, pathlength, moveListIdx);
+            (*moveListIdx)++;
+        }
         myvectofgb.push_back(gb);
-        std::cout << "PUSHED BACK!!!" << std::endl;
-        gb->printBoard();
-        std::cout << "^^ PUSHED BACK ^^" << std::endl;
+        //std::cout << "PUSHED BACK!!!" << std::endl;
+        //gb->printBoard();
+        //std::cout << "^^ PUSHED BACK ^^" << std::endl;
+
         //moveNum++;
         //movePathNum = 0;
         //mylistOfMoves.push_back(mylistOfMoves[moveNum]);
@@ -320,7 +355,7 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
     return false;
 }
 
-void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb) {
+void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, bool requestMove, int *moveListIdx) {
 	if(hasAJump) {
 		//std::cout << "JUMPS FOUND." << std::endl;
 		return;
@@ -336,6 +371,10 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
             gb->doMove(cc, target);  
             //gb->printBoard();          	
             myvectofgb.push_back(gb);
+            if(requestMove) {
+                std::cout << "  Move " << *moveListIdx << ": " << cc.toString() << " -> " << target.toString() << std::endl;
+                (*moveListIdx)++;
+            }
             //std::cout<<"SIZE OF VECTOFGB: " << myvectofgb.size() << std::endl;
         }
     }
@@ -349,6 +388,10 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
             gb->doMove(cc, target);  
             //gb->printBoard();            	
             myvectofgb.push_back(gb);
+            if(requestMove) {
+                std::cout << "  Move " << *moveListIdx << ": " << cc.toString() << " -> " << target.toString() << std::endl;
+                (*moveListIdx)++;
+            }
             //std::cout<<"SIZE OF VECTOFGB: " <<myvectofgb.size() << std::endl;
 
         }
@@ -363,6 +406,10 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
             gb->doMove(cc, target);  
             //gb->printBoard();   
             myvectofgb.push_back(gb);
+            if(requestMove) {
+                std::cout << "  Move " << *moveListIdx << ": " << cc.toString() << " -> " << target.toString() << std::endl;
+                (*moveListIdx)++;
+            }
             //std::cout<<"SIZE OF VECTOFGB: " <<myvectofgb.size() << std::endl;
 
         }
@@ -377,6 +424,10 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
             gb->doMove(cc, target);  
             //gb->printBoard();   
             myvectofgb.push_back(gb);
+            if(requestMove) {
+                std::cout << "  Move " << *moveListIdx << ": " << cc.toString() << " -> " << target.toString() << std::endl;
+                (*moveListIdx)++;
+            }
             //std::cout<<"SIZE OF VECTOFGB: " <<myvectofgb.size() << std::endl;
 
         }
@@ -386,45 +437,45 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
 
 
 
-void GameBoard::getAllP1Moves() {
+void GameBoard::getAllP1Moves(bool requestMove, int *moveListIdx) {
     player1 = true;
     for(int i = 0; i < number_P1_pieces; i++) {
         //std::cout << "FOR PIECE: " << i << std::endl;
         XY cc = P1_pieces[i];
         //std::cout << cc.toString() << std::endl;
 		currentPieceSteps = new PieceSteps(); // for every piece, this is different
-        getMoves(NULL, cc, board, vectOfGb); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
+        getMoves(NULL, cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
 		listOfMoves.push_back(currentPieceSteps);
-        if(!hasAJump) {
-            //std::cout << "Size: " << vectOfGb.size() << std::endl;
-            vectOfGb.pop_back();
-            std::cout << "cleared!, " << vectOfGb.size() << std::endl;
-			getRegularMoves(cc, board, vectOfGb);
+        if(!hasAJump) return;
+        for(int i = 0; i < number_P1_pieces; i++) {
+            if(!hasAJump) {
+                //std::cout << "Size: " << vectOfGb.size() << std::endl;
+                //std::cout << "cleared!, " << vectOfGb.size() << std::endl;
+			    getRegularMoves(cc, board, vectOfGb, requestMove, moveListIdx);
+            }
         }
     }
 }
 
-void GameBoard::getAllP2Moves() {
+void GameBoard::getAllP2Moves(bool requestMove, int *moveListIdx) {
     player1 = false;
     for(int i = 0; i < number_P2_pieces; i++) {
-        std::cout << "FOR PIECE IN PLAYER 2: " << i << std::endl;
+        //std::cout << "FOR PIECE IN PLAYER 2: " << i << std::endl;
         XY cc = P2_pieces[i];
         //std::cout << cc.toString() << std::endl;
         currentPieceSteps = new PieceSteps(); // for every piece, this is different
-        getMoves(NULL, cc, board, vectOfGb); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
+        getMoves(NULL, cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
         listOfMoves.push_back(currentPieceSteps);
-        std::cout << i << " hasJump?: " << hasAJump << std::endl;
+        //std::cout << i << " hasJump?: " << hasAJump << std::endl;
     }
-    if(!hasAJump) {
-        vectOfGb.clear();
-    }
+    if(hasAJump) return;
     //MOVE TO IF FOR MORE EFFICIENCY
     //std::cout << "vect size: " << vectOfGb.size() << std::endl;
     for(int i = 0; i < number_P2_pieces; i++) {
         XY cc = P2_pieces[i];
         if(!hasAJump) {
-            std::cout << "cleared!, " << vectOfGb.size() << std::endl;
-            getRegularMoves(cc, board, vectOfGb);
+            //std::cout << "vect size: " << vectOfGb.size() << std::endl;
+            getRegularMoves(cc, board, vectOfGb, requestMove, moveListIdx);
         }
     }
 }
@@ -453,6 +504,16 @@ void GameBoard::printP1MoveList() {
 	}
 }
 
+void GameBoard::printXYMovesList(XY list[], int plength, int *moveListIdx) {
+    std::cout << "  Move " << *moveListIdx << ": ";
+    for(int i = 0; i <= plength; i++) {
+        std::cout << list[i].toString();
+        if(i != plength)
+            std::cout << " -> ";
+    }
+    std::cout << std::endl;
+}
+
 bool GameBoard::isWin() {
     if(vectOfGb.size() == 0)
         return true;
@@ -475,7 +536,12 @@ bool GameBoard::SameAsReg(GameBoard *parent) {
 }
 
 
-
+void GameBoard::getMovesGeneral(int userplayernum, int *idx) {
+    if(userplayernum == 1)
+        getAllP1Moves(true, idx);
+    else
+        getAllP2Moves(true, idx);
+}
 
 
 
