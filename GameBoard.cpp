@@ -216,7 +216,7 @@ void GameBoard::doMove(XY start, XY end) {
 
 
 
-bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, XY list[], int pathlength, bool requestMove, int *moveListIdx, bool player1) { //std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum) {
+bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, XY list[], int pathlength, bool requestMove, int *moveListIdx, bool player1) { //std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum) {
     /*XY orig;
     if(movePathNum == 0) {
         std::vector<Moves> newCol;
@@ -255,18 +255,18 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
                 gb->doMove(cc, jumpTo);
                 //mylistOfMoves[moveNum].push_back(orig, cc, jumpTo);
                 //gb->printBoard();
-    			Steps *pSteps = theSteps;
+    			/*Steps *pSteps = theSteps;
     			if (pSteps == NULL) {
     				pSteps = new Steps();
     				currentPieceSteps->add(pSteps);
     			}
-    			pSteps->add(cc, jumpTo);
+    			pSteps->add(cc, jumpTo);*/
                 //++pathlength;
                 //std::cout << "JUMPED LEFT! PATHLENGTH: " << pathlength << "  JUMPTO: " << jumpTo.toString() << std::endl;
                 //list[pathlength] = jumpTo;
                 //printXYMovesList(list, pathlength);
 
-                isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
+                isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
                 //std::cout << isLastMove << " :isLastMove" << std::endl;
             }
         }
@@ -284,17 +284,17 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
             gb->doMove(cc, jumpTo);
             //mylistOfMoves[moveNum].push_back(orig, cc, jumpTo);
             //gb->printBoard();
-			Steps *pSteps = theSteps;
+			/*Steps *pSteps = theSteps;
 			if (pSteps == NULL) {
 				pSteps = new Steps();
 				currentPieceSteps->add(pSteps);
 			}
-			pSteps->add(cc, jumpTo);
+			pSteps->add(cc, jumpTo);*/
             //pathlength++;
             //list[pathlength] = jumpTo;
             //printXYMovesList(list, pathlength);
 
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
         }
     }
     //BOTTOM LEFT
@@ -311,17 +311,17 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
             //mylistOfMoves[moveNum].push_back(orig, cc, jumpTo);
             //gb->printBoard();
 
-			Steps *pSteps = theSteps;
+			/*Steps *pSteps = theSteps;
 			if (pSteps == NULL) {
 				pSteps = new Steps();
 				currentPieceSteps->add(pSteps);
 			}
-			pSteps->add(cc, jumpTo);
+			pSteps->add(cc, jumpTo);*/
             //pathlength++;
             //list[pathlength] = jumpTo;
             //printXYMovesList(list, pathlength);
 
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
         }
     }
     //BOTTOM RIGHT
@@ -339,17 +339,17 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
             gb->doMove(cc, jumpTo);
             //mylistOfMoves[moveNum].push_back(orig, cc, jumpTo);
             //gb->printBoard();
-			Steps *pSteps = theSteps;
+			/*Steps *pSteps = theSteps;
 			if (pSteps == NULL) {
 				pSteps = new Steps();
 				currentPieceSteps->add(pSteps);
 			}
-			pSteps->add(cc, jumpTo);
+			pSteps->add(cc, jumpTo);*/
             //pathlength++;
             //list[pathlength] = jumpTo;
             //printXYMovesList(list, pathlength);
 
-            isLastMove = (gb->getMoves(pSteps, jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
+            isLastMove = (gb->getMoves(jumpTo, gb->board,myvectofgb, list, pathlength+1, requestMove, moveListIdx, player1)); //, mylistOfMoves, moveNum, ++movePathNum));
         }
     }  
 
@@ -469,13 +469,16 @@ void GameBoard::getAllP1Moves(bool requestMove, int *moveListIdx) {
         //std::cout << "FOR PIECE: " << i;
         XY cc = P1_pieces[i];
         //std::cout << " at: " << cc.toString() << std::endl;
-		currentPieceSteps = new PieceSteps(); // for every piece, this is different
-        getMoves(NULL, cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx, player1); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
-		listOfMoves.push_back(currentPieceSteps);
+		//currentPieceSteps = new PieceSteps(); // for every piece, this is different
+        getMoves(cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx, player1); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
+		//listOfMoves.push_back(currentPieceSteps);
     }
 
     if(hasAJump) return;
     else{
+        for(int i = 0; i < vectOfGb.size(); i++) {
+            delete vectOfGb[i];
+        }
         vectOfGb.clear();
     }
     for(int i = 0; i < number_P1_pieces; i++) {
@@ -494,13 +497,16 @@ void GameBoard::getAllP2Moves(bool requestMove, int *moveListIdx) {
         //std::cout << "FOR PIECE IN PLAYER 2: " << i << std::endl;
         XY cc = P2_pieces[i];
         //std::cout << cc.toString() << std::endl;
-        currentPieceSteps = new PieceSteps(); // for every piece, this is different
-        getMoves(NULL, cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx, player1); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
-        listOfMoves.push_back(currentPieceSteps);
+       // currentPieceSteps = new PieceSteps(); // for every piece, this is different
+        getMoves(cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx, player1); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
+        //listOfMoves.push_back(currentPieceSteps);
         //std::cout << i << " hasJump?: " << hasAJump << std::endl;
     }
     if(hasAJump) return;
     else{
+        for(int i = 0; i < vectOfGb.size(); i++) {
+           delete vectOfGb[i];
+        }
         vectOfGb.clear();
     }
     //MOVE TO IF FOR MORE EFFICIENCY

@@ -2,11 +2,14 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <chrono>
 
 #include "GameBoard.h"
 #include "Player1.h"
 #include "CheckerComposite.h"
 #include "P1NextBoards.h"
+
+
 
 void initialize(GameBoard &gb, int usernum) {
     //INITIAL BOARD
@@ -100,6 +103,9 @@ void doUserMove(int idx, GameBoard &gb, int *whoseturn) {
     gb.hasAJump = false;
     gb.printBoard();
     //gb.setPieces();
+    for(int i = 0; i < gb.vectOfGb.size(); i++) {
+        delete gb.vectOfGb[i];
+    }
     gb.vectOfGb.clear();
     if((*whoseturn)==1)
         (*whoseturn) = 2;
@@ -108,88 +114,104 @@ void doUserMove(int idx, GameBoard &gb, int *whoseturn) {
 
 }
 
-int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer, int *pruneNum, int *bestmoveidx, int *foo, int whoseturn) {
-    GameBoard *ngb = new GameBoard();
-    ngb->setBoard(gb->board);
-    ngb->setPieces();
-    if(!gb->isRoot){
-        //ngb->printBoard();
-    }
-    //std::cout << std::endl;
-    //std::cout << "ENTERED ALPHABETA" << std::endl;
-    int cval;
-    int v;
-    if(userplayer == 1 && isMax == true) {
-        ngb->getAllP2Moves(false, foo);
-        //std::cout << "1~~";
-        //ngb->printAllP1Moves();
-    }
-    else if (userplayer == 1 && isMax == false) { 
-        ngb->getAllP1Moves(false, foo);
-       // std::cout << "2~~";
-        //ngb->printAllP1Moves();
-    }
-    else if(userplayer == 2 && isMax == true) {
-        ngb->getAllP1Moves(false, foo);
-        //std::cout << "3~~";
-        //ngb->printAllP1Moves();
-    }
-    else {
-        ngb->getAllP2Moves(false, foo);
-      //  std::cout << "4~~";
-        //ngb->printAllP1Moves();
-    }
+std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
 
-    //std::cout << " Size: " << ngb->vectOfGb.size();
-
-    if ((depth == 0) || (ngb->isWin(whoseturn) != 0)) {
-    	//std::cout << "RETURN HEURISTIC!" << std::endl;
-        v = ngb->getHeuristic(userplayer);
-        return v;
-    }
-    //std::cout << "CURRENT DEPTH: " << depth << std::endl;
-    //std::cout << "isMax: " << isMax << std::endl;
-    if(isMax) {
-    	//std::cout << "IS MAX!!!! " << userplayer;
-        v = -2000000;
-    	//std::cout << "Size: " << ngb->vectOfGb.size() << std::endl;
-        for(int i = 0; i < ngb->vectOfGb.size(); i++){
-        //	std::cout << " i: " << i;
-            cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, false, userplayer, pruneNum, bestmoveidx,foo, whoseturn);
-            if(cval > v) {
-            	v = cval;
-            	if(gb->isRoot) {
-            		//std::cout << "SETTING VALUE TO i: " << i << std::endl;
-            		(*bestmoveidx) = i;
-            	}
-            }   
-            alpha = std::max(alpha, v);
-            if (beta <= alpha) {
-            	(*pruneNum)++;
-                break;
-            }
+int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer, int *pruneNum, int *bestmoveidx, int *foo, int whoseturn, int timeLimit, bool *timeOver) {
+    if(!(*timeOver)) {
+        endTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> secondsPassed = endTime-startTime;
+        if(secondsPassed.count() > timeLimit) {
+            std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
+            (*timeOver) = true;
+            return 0;
         }
-        return v;
-    }
 
-    else {
-        //std::cout << "IS MIN!!!! " << userplayer;
-        v = 2000000;
-        for(int i = 0; i < ngb->vectOfGb.size(); i++) {
-        	//std::cout << "MIN! Depth: " << depth-1 << std::endl;
-            cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, true, userplayer, pruneNum, bestmoveidx,foo, whoseturn);
-            if(cval < v) {
-            	v = cval;
-            }   
-            beta = std::min(beta, v);
-            if (beta <= alpha) {
-            	(*pruneNum)++;
-                break;
+        GameBoard *ngb = new GameBoard();
+        ngb->setBoard(gb->board);
+        ngb->setPieces();
+        if(!gb->isRoot){
+            //ngb->printBoard();
+        }
+        //std::cout << std::endl;
+        //std::cout << "ENTERED ALPHABETA" << std::endl;
+        int cval;
+        int v;
+        if(userplayer == 1 && isMax == true) {
+            ngb->getAllP2Moves(false, foo);
+            //std::cout << "1~~";
+            //ngb->printAllP1Moves();
+        }
+        else if (userplayer == 1 && isMax == false) { 
+            ngb->getAllP1Moves(false, foo);
+           // std::cout << "2~~";
+            //ngb->printAllP1Moves();
+        }
+        else if(userplayer == 2 && isMax == true) {
+            ngb->getAllP1Moves(false, foo);
+            //std::cout << "3~~";
+            //ngb->printAllP1Moves();
+        }
+        else {
+            ngb->getAllP2Moves(false, foo);
+          //  std::cout << "4~~";
+            //ngb->printAllP1Moves();
+        }
+
+        //std::cout << " Size: " << ngb->vectOfGb.size();
+
+        if ((depth == 0) || (ngb->isWin(whoseturn) != 0)) {
+        	//std::cout << "RETURN HEURISTIC!" << std::endl;
+            v = ngb->getHeuristic(userplayer);
+            delete ngb;
+            return v;
+        }
+        //std::cout << "CURRENT DEPTH: " << depth << std::endl;
+        //std::cout << "isMax: " << isMax << std::endl;
+        if(isMax) {
+        	//std::cout << "IS MAX!!!! " << userplayer;
+            v = -2000000;
+        	//std::cout << "Size: " << ngb->vectOfGb.size() << std::endl;
+            for(int i = 0; i < ngb->vectOfGb.size(); i++){
+            //	std::cout << " i: " << i;
+                cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, false, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver);
+                if(cval > v) {
+                	v = cval;
+                	if(gb->isRoot) {
+                		//std::cout << "SETTING VALUE TO i: " << i << std::endl;
+                		(*bestmoveidx) = i;
+                	}
+                }   
+                alpha = std::max(alpha, v);
+                if (beta <= alpha) {
+                	(*pruneNum)++;
+                    break;
+                }
             }
-        return v;
+            delete ngb;
+            return v;
+        }
+
+        else {
+            //std::cout << "IS MIN!!!! " << userplayer;
+            v = 2000000;
+            for(int i = 0; i < ngb->vectOfGb.size(); i++) {
+            	//std::cout << "MIN! Depth: " << depth-1 << std::endl;
+                cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, true, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver);
+                if(cval < v) {
+                	v = cval;
+                }   
+                beta = std::min(beta, v);
+                if (beta <= alpha) {
+                	(*pruneNum)++;
+                    break;
+                }
+                delete ngb;
+            return v;
+        	}
     	}
-	}
-	return v;	
+    }
+	return 0;	
 }
 
 void whoIsHuman (int *whoisHuman, int *whoisAI) {
@@ -204,22 +226,39 @@ void whoIsHuman (int *whoisHuman, int *whoisAI) {
         }
         if(input == '2') {
             (*whoisHuman) = 2;
-            (*whoisAI) = 2;
+            (*whoisAI) = 1;
             break;
         }
         std::cout << "Invalid entry. Try again" << std::endl;
     }
 }
 
+bool humanvsAI() {
+    char input;
+    while(true) {
+        std::cout << "Human vs AI? [y/n]: ";
+        std::cin.get(input);
+        if(input == 'y') {
+            return true;
+        }
+        if(input == 'n') {
+            return false;
+        }
+        std::cout << "Invalid entry. Try again" << std::endl;
+    }
+}
+
+
+
 int main () {
 
     int turncount = 0;
     int userIDX = 0;
 
-    bool humanvsAI = true;
+    //bool humanvsAI = true;
 
-    int userplayerNum = 1; //default
-    int aiNumber = 2;
+    int userplayerNum = 2; //default
+    int aiNumber = 1;
     int whoseturn = 1;
 
     int moveListIdx = 0;
@@ -230,7 +269,12 @@ int main () {
     int *ptraiidx = &aiIdxBestMove;
 
     int minimaxchoice;
-    int depth_max = 6;
+    //time_t startTime;
+    //time_t endTime;
+    bool timeOver = false;
+    double secondsPassed;
+    int timeLimit = 5;
+    int depth_max = 15;
 
     GameBoard playingboard;
     playingboard.isRoot = true;
@@ -238,14 +282,40 @@ int main () {
     initialize(playingboard, userplayerNum);
     //whoIsHuman(&userplayerNum);
 
-    std::cout << "              Turn: " << turncount;
-    playingboard.printBoard();
-
 
 
 
     //=========================== H U M A N    V S     A I ====================================
-    if(humanvsAI == true) {
+    if(humanvsAI()) {
+
+        std::cout << "Playing Human vs AI" << std::endl;
+        whoIsHuman(&userplayerNum, &aiNumber);
+
+        std::cout << "              Turn: " << turncount;
+        playingboard.printBoard();
+
+        if(userplayerNum == 2) {
+            startTime = std::chrono::high_resolution_clock::now();
+            timeOver = false;
+            for (int i = 1; i < depth_max; i++) {
+                if(!timeOver) {
+                    minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+                }
+            }
+            num_of_prunes = 0;
+            moveListIdx = 0;
+            playingboard.getMovesGeneral(aiNumber, &moveListIdx);
+            moveListIdx = 0;
+            //std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
+            std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
+            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+            for(int i = 0; i < playingboard.vectOfGb.size(); i++) {
+                delete playingboard.vectOfGb[i];
+            }
+            playingboard.vectOfGb.clear();
+            std::cout << std::endl << std::endl << std::endl;
+            //timeOver = false;
+        }
         while(true){
             std::cout<<"=======PLAYER " << userplayerNum << " MOVES=========" << std::endl;
             playingboard.getMovesGeneral(userplayerNum, &moveListIdx);
@@ -264,18 +334,23 @@ int main () {
             //doUserMove(userIDX, playingboard);
 
         //IDDFS
-
-
+            startTime = std::chrono::high_resolution_clock::now();
+            timeOver = false;
             for (int i = 1; i < depth_max; i++) {
-                //std::cout << std::endl << "depth: " << i << std::endl;
-                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
+                if(!timeOver) {
+                    minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+                }
             }
+            num_of_prunes = 0;
             moveListIdx = 0;
             playingboard.getMovesGeneral(aiNumber, &moveListIdx);
             moveListIdx = 0;
             //std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
             std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
             doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+            for(int i = 0; i < playingboard.vectOfGb.size(); i++) {
+                delete playingboard.vectOfGb[i];
+            }
             playingboard.vectOfGb.clear();
             std::cout << std::endl << std::endl << std::endl;
 
@@ -287,7 +362,7 @@ int main () {
         }
     }
 
-    else if(humanvsAI == false) {
+    else {
         int ai2bestchoice = 0;
         while(true){
             std::cout << "              Turn: " << turncount++ << std::endl;
@@ -296,9 +371,9 @@ int main () {
             //Player 1 Moves
             for (int i = 1; i < depth_max; i++) {
                 //std::cout << std::endl << "depth: " << i << std::endl;
-                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 2, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
+                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 2, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
             }
-
+            timeOver = false;
             playingboard.getMovesGeneral(1, &moveListIdx);
             doUserMove(aiIdxBestMove, playingboard, &whoseturn);
             std::cout << std::endl;
@@ -310,8 +385,9 @@ int main () {
             //Player 2 Moves
             for (int i = 1; i < depth_max; i++) {
                 //std::cout << std::endl << "depth: " << i << std::endl;
-                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 1, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
+                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 1, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
             }
+            timeOver = false;
             playingboard.getMovesGeneral(2, &moveListIdx);
             doUserMove(aiIdxBestMove, playingboard, &whoseturn);
             std::cout << std::endl;
