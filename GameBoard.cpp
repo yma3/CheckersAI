@@ -11,6 +11,7 @@ void GameBoard::setBoard(unsigned char myboard[][8]) {
             board[i][j] = myboard[i][j];
         }
     }
+
     setPieces();
 }
 
@@ -219,7 +220,7 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
     if(player1) {REGULAR = 2; KINGVAL = 4;}
     else {REGULAR = 1; KINGVAL = 3;}
     //TOP LEFT
-    if(cc.x > 0 && cc.y > 0) {
+    if(cc.x > 0 && cc.y > 0 && (currval > 2 || currval == 1)) {
         XY target(cc.x-1, cc.y-1);
         int tarVal = board[target.x][target.y];
         if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x-1][target.y-1] == 0 && (target.x > 0 && target.y > 0)) {
@@ -247,7 +248,7 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
         }
     }
     //TOP RIGHT
-    if(cc.x > 0 && cc.y < 7) {
+    if(cc.x > 0 && cc.y < 7 && (currval > 2 || currval == 1)) {
         XY target(cc.x-1, cc.y+1);
         int tarVal = board[target.x][target.y];
         if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x-1][target.y+1] == 0 && (target.x > 0 && target.y < 7)) {
@@ -273,7 +274,7 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
         }
     }
     //BOTTOM LEFT
-    if((cc.x < 7 && cc.y > 0) || currval > 2) {
+    if((cc.x < 7 && cc.y > 0) || currval >= 2) {
         XY target(cc.x+1, cc.y-1);
         int tarVal = board[target.x][target.y];
         if ((tarVal == REGULAR || tarVal == KINGVAL) && board[target.x+1][target.y-1] == 0 && (target.x < 7 && target.y > 0)) {
@@ -300,7 +301,7 @@ bool GameBoard::getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::
         }
     }
     //BOTTOM RIGHT
-    if((cc.x < 7 && cc.y < 7) || currval > 2) {
+    if((cc.x < 7 && cc.y < 7) || currval >= 2) {
         
         XY target(cc.x+1, cc.y+1);
         int tarVal = board[target.x][target.y];
@@ -439,20 +440,23 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
 
 void GameBoard::getAllP1Moves(bool requestMove, int *moveListIdx) {
     player1 = true;
+    //printInformation();
     for(int i = 0; i < number_P1_pieces; i++) {
-        //std::cout << "FOR PIECE: " << i << std::endl;
+        //std::cout << "FOR PIECE: " << i;
         XY cc = P1_pieces[i];
-        //std::cout << cc.toString() << std::endl;
+        //std::cout << " at: " << cc.toString() << std::endl;
 		currentPieceSteps = new PieceSteps(); // for every piece, this is different
         getMoves(NULL, cc, board, vectOfGb, XYMovesList, 0, requestMove, moveListIdx); //, listOfMoves, numOfMoves, pathNum); //xinmin: top "Steps" is NULL
 		listOfMoves.push_back(currentPieceSteps);
-        if(!hasAJump) return;
-        for(int i = 0; i < number_P1_pieces; i++) {
-            if(!hasAJump) {
-                //std::cout << "Size: " << vectOfGb.size() << std::endl;
-                //std::cout << "cleared!, " << vectOfGb.size() << std::endl;
-			    getRegularMoves(cc, board, vectOfGb, requestMove, moveListIdx);
-            }
+    }
+
+    if(hasAJump) return;
+    for(int i = 0; i < number_P1_pieces; i++) {
+        if(!hasAJump) {
+            XY cc = P1_pieces[i];
+            //std::cout << "Size: " << vectOfGb.size() << std::endl;
+            //std::cout << "cleared!, " << vectOfGb.size() << std::endl;
+		    getRegularMoves(cc, board, vectOfGb, requestMove, moveListIdx);
         }
     }
 }
@@ -514,14 +518,24 @@ void GameBoard::printXYMovesList(XY list[], int plength, int *moveListIdx) {
     std::cout << std::endl;
 }
 
-bool GameBoard::isWin() {
-    if(vectOfGb.size() == 0)
-        return true;
-    if(number_P2_pieces == 0)
-        return true;
-    if(number_P1_pieces == 0)
-        return true;
-return false;
+int GameBoard::isWin(int whoseturn) {
+    if(whoseturn == 1)
+        getAllP1Moves(false, NULL);
+    else
+        getAllP2Moves(false, NULL);
+    if(vectOfGb.size() == 0){
+        //std::cout<< " GAME OVER BY NO MOVES!" << std::endl;
+        return 1;
+    }
+    if(number_P2_pieces == 0){
+        //std::cout<< " GAME OVER! P2 HAS NO PIECES" << std::endl;
+        return 2;
+    }
+    if(number_P1_pieces == 0){
+        //std::cout<< " GAME OVER! P1 HAS NO PIECES" << std::endl;
+        return 3;
+    }
+return 0;
 }
 
 
@@ -545,7 +559,9 @@ void GameBoard::getMovesGeneral(int userplayernum, int *idx) {
 
 
 
-
+void GameBoard::printInformation() {
+    std::cout << "hasAJump: " << hasAJump << " P1n: " << number_P1_pieces << " P2n: " << number_P2_pieces << std::endl;
+}
 
 
 

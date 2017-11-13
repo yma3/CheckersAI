@@ -142,8 +142,9 @@ public:
     void printP1MoveList();
     void printXYMovesList(XY list[], int plength, int *moveListIdx);
 
+    void printInformation();
 
-    bool isWin();
+    int isWin(int whoseturn);
     //int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer);
 
 
