@@ -45,16 +45,16 @@ void initialize(GameBoard &gb, int usernum) {
     unsigned char testRegMoveBoard[8][8] = {
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 2, 0, 0},
+        {0, 0, 0, 4, 0, 0, 0, 0},
+        {0, 0, 0, 0, 1, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 2, 0, 0, 0, 0},
-        {0, 0, 0, 0, 3, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 1, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0}
     };
-    //gb.setBoard(initialBoard);
+    gb.setBoard(initialBoard);
     //gb.setBoard(testJumpBoard);
-    gb.setBoard(testSquareJumpBoard);
+    //gb.setBoard(testSquareJumpBoard);
     //gb.setBoard(testRegMoveBoard);
     gb.setPieces();
     gb.setHeuristic(usernum);
@@ -96,6 +96,7 @@ int requestMoveInput(std::vector<GameBoard*> gb) {
 
 void doUserMove(int idx, GameBoard &gb, int *whoseturn) {
     gb.setBoard(gb.vectOfGb[idx]->board);
+    gb.setPieces();
     gb.hasAJump = false;
     gb.printBoard();
     //gb.setPieces();
@@ -110,7 +111,7 @@ void doUserMove(int idx, GameBoard &gb, int *whoseturn) {
 int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer, int *pruneNum, int *bestmoveidx, int *foo, int whoseturn) {
     GameBoard *ngb = new GameBoard();
     ngb->setBoard(gb->board);
-    //ngb->setPieces();
+    ngb->setPieces();
     if(!gb->isRoot){
         //ngb->printBoard();
     }
@@ -210,12 +211,13 @@ void whoIsHuman (int *whoisHuman, int *whoisAI) {
     }
 }
 
-
-
 int main () {
 
     int turncount = 0;
     int userIDX = 0;
+
+    bool humanvsAI = true;
+
     int userplayerNum = 1; //default
     int aiNumber = 2;
     int whoseturn = 1;
@@ -239,43 +241,93 @@ int main () {
     std::cout << "              Turn: " << turncount;
     playingboard.printBoard();
 
-    while(true){
-        std::cout<<"=======PLAYER " << userplayerNum << " MOVES=========" << std::endl;
-        playingboard.getMovesGeneral(userplayerNum, &moveListIdx);
-        userIDX = requestMoveInput(playingboard.vectOfGb);
-        std::cout << "userIDX: " << userIDX << std::endl;
-        doUserMove(userIDX, playingboard, &whoseturn);
-        moveListIdx = 0;
-        turncount++;
-        std::cout << "              Turn: " << turncount << std::endl;
-
-        //playingboard.getAllP2Moves(true, &moveListIdx);
-        //playingboard.getAllP1Moves();
-        //playingboard.printAllP1Moves();
-        //userIDX = requestMoveInput(playingboard.vectOfGb);
-        //doUserMove(userIDX, playingboard);
-
-    //IDDFS
 
 
-        for (int i = 1; i < depth_max; i++) {
-            //std::cout << std::endl << "depth: " << i << std::endl;
-            minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
-        }
-        moveListIdx = 0;
-        playingboard.getMovesGeneral(aiNumber, &moveListIdx);
-        moveListIdx = 0;
-        //std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
-        std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
-        doUserMove(aiIdxBestMove, playingboard, &whoseturn);
-        std::cout << std::endl << std::endl << std::endl;
+
+    //=========================== H U M A N    V S     A I ====================================
+    if(humanvsAI == true) {
+        while(true){
+            std::cout<<"=======PLAYER " << userplayerNum << " MOVES=========" << std::endl;
+            playingboard.getMovesGeneral(userplayerNum, &moveListIdx);
+            userIDX = requestMoveInput(playingboard.vectOfGb);
+            std::cout << "userIDX: " << userIDX << std::endl;
+            //playingboard.vectOfGb[userIDX]->printBoard();
+            doUserMove(userIDX, playingboard, &whoseturn);
+            moveListIdx = 0;
+            turncount++;
+            std::cout << "              Turn: " << turncount << std::endl;
+
+            //playingboard.getAllP2Moves(true, &moveListIdx);
+            //playingboard.getAllP1Moves();
+            //playingboard.printAllP1Moves();
+            //userIDX = requestMoveInput(playingboard.vectOfGb);
+            //doUserMove(userIDX, playingboard);
+
+        //IDDFS
 
 
-        if(playingboard.isWin(whoseturn) != 0) {
-            std::cout << "GAME OVER BY: " << playingboard.isWin(whoseturn) << std::endl;
-            break;
+            for (int i = 1; i < depth_max; i++) {
+                //std::cout << std::endl << "depth: " << i << std::endl;
+                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
+            }
+            moveListIdx = 0;
+            playingboard.getMovesGeneral(aiNumber, &moveListIdx);
+            moveListIdx = 0;
+            //std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
+            std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
+            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+            playingboard.vectOfGb.clear();
+            std::cout << std::endl << std::endl << std::endl;
+
+
+            if(playingboard.isWin(whoseturn) != 0) {
+                std::cout << "GAME OVER BY: " << playingboard.isWin(whoseturn) << std::endl;
+                break;
+            }
         }
     }
+
+    else if(humanvsAI == false) {
+        int ai2bestchoice = 0;
+        while(true){
+            std::cout << "              Turn: " << turncount++ << std::endl;
+            std::cout<<"========AI PLAYER 1==========" << std::endl;
+
+            //Player 1 Moves
+            for (int i = 1; i < depth_max; i++) {
+                //std::cout << std::endl << "depth: " << i << std::endl;
+                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 2, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
+            }
+
+            playingboard.getMovesGeneral(1, &moveListIdx);
+            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+            std::cout << std::endl;
+            moveListIdx = 0;
+
+
+            std::cout << "              Turn: " << turncount++ << std::endl;
+            std::cout<<"========AI PLAYER 2==========" << std::endl;
+            //Player 2 Moves
+            for (int i = 1; i < depth_max; i++) {
+                //std::cout << std::endl << "depth: " << i << std::endl;
+                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 1, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn);
+            }
+            playingboard.getMovesGeneral(2, &moveListIdx);
+            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+            std::cout << std::endl;
+            moveListIdx = 0;
+
+            if(playingboard.isWin(whoseturn) != 0) {
+                std::cout << "GAME OVER BY: " << playingboard.isWin(whoseturn) << std::endl;
+                break;
+            }
+
+            std::cin.get();
+        }
+    }
+
+
+
     //playingboard.setBoard(playingboard.vectOfGb[aiIdxBestMove]->board);
     
 

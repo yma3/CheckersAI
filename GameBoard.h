@@ -130,7 +130,7 @@ public:
     void printInfo();
     
     void doMove(XY start, XY end);
-	bool getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, XY list[], int pathlength, bool requestMove, int *moveListIdx);//std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum);
+	bool getMoves(Steps *theSteps, XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, XY list[], int pathlength, bool requestMove, int *moveListIdx, bool player1);//std::vector<std::vector<Moves>> &mylistOfMoves, int &moveNum, int &movePathNum);
     void getRegularMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*> &myvectofgb, bool requestMove, int *moveListIdx);
     void getAllP1Moves(bool requestMove, int *moveListIdx);
     void getAllP2Moves(bool requestMove, int *moveListIdx);
