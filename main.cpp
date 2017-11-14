@@ -5,9 +5,9 @@
 #include <chrono>
 
 #include "GameBoard.h"
-#include "Player1.h"
-#include "CheckerComposite.h"
-#include "P1NextBoards.h"
+//#include "Player1.h"
+//#include "CheckerComposite.h"
+//#include "P1NextBoards.h"
 
 
 
@@ -65,19 +65,6 @@ void initialize(GameBoard &gb, int usernum) {
 
 }
 
-void doTestNextMove(GameBoard &playingboard) {
-    Player1 p1(playingboard);
-    Player2 p2(playingboard);
-
-    p1.createAllMoves();
-    p2.createAllMoves();
-
-    std::cout << std::endl << "== PLAYER 1 MOVES ==";
-    p1.printMoves();
-    //std::cout << std::endl << "== PLAYER 2 MOVES ==";
-    //p2.printMoves();
-    //playingboard.flipBoard();
-}
 
 int requestMoveInput(std::vector<GameBoard*> gb) {
     std::string input = "";
@@ -86,7 +73,7 @@ int requestMoveInput(std::vector<GameBoard*> gb) {
 
     while(true) {
         std::cout << "Please Enter Your Move: ";
-        getline(std::cin, input);
+        std::cin >> input;
 
         std::stringstream myStream(input);
         myStream >> inputint;
@@ -175,6 +162,7 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
             for(int i = 0; i < ngb->vectOfGb.size(); i++){
             //	std::cout << " i: " << i;
                 cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, false, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver);
+                delete ngb->vectOfGb[i];
                 if(cval > v) {
                 	v = cval;
                 	if(gb->isRoot) {
@@ -198,6 +186,7 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
             for(int i = 0; i < ngb->vectOfGb.size(); i++) {
             	//std::cout << "MIN! Depth: " << depth-1 << std::endl;
                 cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, true, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver);
+                delete ngb->vectOfGb[i];
                 if(cval < v) {
                 	v = cval;
                 }   
@@ -206,7 +195,7 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
                 	(*pruneNum)++;
                     break;
                 }
-                delete ngb;
+            delete ngb;
             return v;
         	}
     	}
@@ -215,33 +204,32 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
 }
 
 void whoIsHuman (int *whoisHuman, int *whoisAI) {
-    char input;
+    std::string input;
     while(true) {
         std::cout << "Player 1 or Player 2? [1 or 2]: ";
-        std::cin.get(input);
-        if(input == '1') {
+        std::cin >> input;
+        if(input == "1") {
             (*whoisHuman) = 1;
             (*whoisAI) = 2;
             break;
         }
-        if(input == '2') {
+        if(input == "2") {
             (*whoisHuman) = 2;
             (*whoisAI) = 1;
             break;
         }
-        std::cout << "Invalid entry. Try again" << std::endl;
-    }
+    std::cout << "Invalid entry. Try again" << std::endl;    }
 }
 
 bool humanvsAI() {
-    char input;
+    std::string input;
     while(true) {
         std::cout << "Human vs AI? [y/n]: ";
-        std::cin.get(input);
-        if(input == 'y') {
+        std::cin >> input;
+        if(input == "y") {
             return true;
         }
-        if(input == 'n') {
+        if(input == "n") {
             return false;
         }
         std::cout << "Invalid entry. Try again" << std::endl;
@@ -299,7 +287,12 @@ int main () {
             timeOver = false;
             for (int i = 1; i < depth_max; i++) {
                 if(!timeOver) {
+                    std::cout << "Reached depth: " << i << std::endl;
                     minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+                }
+                else {
+                    std::cout << "Reached depth: " << i << std::endl;
+                    break;
                 }
             }
             num_of_prunes = 0;
@@ -338,7 +331,12 @@ int main () {
             timeOver = false;
             for (int i = 1; i < depth_max; i++) {
                 if(!timeOver) {
+                    std::cout << "Reached depth: " << i << std::endl;
                     minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+                }
+                else {
+                    std::cout << "Reached depth: " << i << std::endl;
+                    break;
                 }
             }
             num_of_prunes = 0;
