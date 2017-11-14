@@ -224,6 +224,9 @@ bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*
         movePathNum;
         orig = cc;
     }*/
+    GameBoard *gb = new GameBoard();
+    gb->setBoard(board);
+
     if(isRoot) {
         pathlength = 0;
     }
@@ -233,8 +236,7 @@ bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*
     //std::cout << "STARTING FROM " << (int)cc.x << " , " << (int)cc.y << std::endl;
     bool isLastMove = true;
     int currval = board[cc.x][cc.y];
-    GameBoard *gb = new GameBoard();
-    gb->setBoard(board);
+
     if(player1) {
         REGULAR = 2; KINGVAL = 4;
     }
@@ -250,7 +252,6 @@ bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*
                 //std::cout << "TOP LEFT!" << std::endl;
                 hasAJump = true;
                 //ADD JUMP TO LIST
-                gb->setBoard(board);
                 XY jumpTo(target.x-1, target.y-1);
                 gb->doMove(cc, jumpTo);
                 //mylistOfMoves[moveNum].push_back(orig, cc, jumpTo);
@@ -334,7 +335,6 @@ bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*
             //std::cout << "BOTTOM RIGHT JUMP! " << std::endl;
             hasAJump = true;
             //ADD JUMP TO LIST
-            gb->setBoard(board);
             XY jumpTo(target.x+1, target.y+1);
             gb->doMove(cc, jumpTo);
             //mylistOfMoves[moveNum].push_back(orig, cc, jumpTo);
@@ -376,6 +376,9 @@ bool GameBoard::getMoves(XY cc, unsigned char board[][8], std::vector<GameBoard*
         //mylistOfMoves.push_back(mylistOfMoves[moveNum]);
         //std::cout << "Push successful. Size of vector is: " << vectOfGb.size() << std::endl;
         return false;
+    }
+    else {
+        delete gb;
     }
     //std::cout << "RETURNING TRUE" << std::endl;
     return false;
@@ -454,7 +457,6 @@ void GameBoard::getRegularMoves(XY cc, unsigned char board[][8], std::vector<Gam
                 (*moveListIdx)++;
             }
             //std::cout<<"SIZE OF VECTOFGB: " <<myvectofgb.size() << std::endl;
-
         }
     }
 }
