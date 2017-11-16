@@ -1,15 +1,12 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <utility>
 #include <chrono>
+#include <climits>
 
 #include "GameBoard.h"
-//#include "Player1.h"
-//#include "CheckerComposite.h"
-//#include "P1NextBoards.h"
-
-
 
 void initialize(GameBoard &gb, int usernum) {
     //INITIAL BOARD
@@ -47,11 +44,11 @@ void initialize(GameBoard &gb, int usernum) {
     };
     unsigned char testRegMoveBoard[8][8] = {
         {0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 2, 0, 2, 0},
+        {0, 0, 0, 1, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 4, 0, 0, 0, 0},
-        {0, 0, 0, 0, 1, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 1, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0}
     };
@@ -60,9 +57,7 @@ void initialize(GameBoard &gb, int usernum) {
     //gb.setBoard(testSquareJumpBoard);
     //gb.setBoard(testRegMoveBoard);
     gb.setPieces();
-    gb.setHeuristic(usernum);
-
-
+    //gb.setHeuristic(usernum, );
 }
 
 
@@ -86,10 +81,17 @@ int requestMoveInput(std::vector<GameBoard*> gb) {
 
 void doUserMove(int idx, GameBoard &gb, int *whoseturn) {
     gb.setBoard(gb.vectOfGb[idx]->board);
+    for(int j = 0; j < 8; j++) {
+        if(gb.board[0][j] == 1) {
+            gb.board[0][j] = 3;
+        }
+        if(gb.board[7][j] == 2) {
+            gb.board[7][j] = 4;
+        }
+    }
     gb.setPieces();
     gb.hasAJump = false;
     gb.printBoard();
-    //gb.setPieces();
     for(int i = 0; i < gb.vectOfGb.size(); i++) {
         delete gb.vectOfGb[i];
     }
@@ -104,12 +106,11 @@ void doUserMove(int idx, GameBoard &gb, int *whoseturn) {
 std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
 std::chrono::time_point<std::chrono::high_resolution_clock> endTime;
 
-int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer, int *pruneNum, int *bestmoveidx, int *foo, int whoseturn, int timeLimit, bool *timeOver) {
+int alphabeta(GameBoard *gb, int depth, long alpha, long beta, bool isMax, int userplayer, int *pruneNum, int *bestmoveidx, int *foo, int whoseturn, int timeLimit, bool *timeOver, int enterdepth) {
     if(!(*timeOver)) {
         endTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> secondsPassed = endTime-startTime;
         if(secondsPassed.count() > timeLimit) {
-            std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
             (*timeOver) = true;
             return 0;
         }
@@ -117,39 +118,26 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
         GameBoard *ngb = new GameBoard();
         ngb->setBoard(gb->board);
         ngb->setPieces();
-        if(!gb->isRoot){
-            //ngb->printBoard();
-        }
-        //std::cout << std::endl;
-        //std::cout << "ENTERED ALPHABETA" << std::endl;
         int cval;
-        int v;
+        long v;
         if(userplayer == 1 && isMax == true) {
             ngb->getAllP2Moves(false, foo);
-            //std::cout << "1~~";
-            //ngb->printAllP1Moves();
         }
         else if (userplayer == 1 && isMax == false) { 
             ngb->getAllP1Moves(false, foo);
-           // std::cout << "2~~";
-            //ngb->printAllP1Moves();
         }
         else if(userplayer == 2 && isMax == true) {
             ngb->getAllP1Moves(false, foo);
-            //std::cout << "3~~";
-            //ngb->printAllP1Moves();
         }
         else {
             ngb->getAllP2Moves(false, foo);
-          //  std::cout << "4~~";
-            //ngb->printAllP1Moves();
         }
 
         //std::cout << " Size: " << ngb->vectOfGb.size();
 
         if ((depth == 0) || (ngb->isWin(whoseturn) != 0)) {
         	//std::cout << "RETURN HEURISTIC!" << std::endl;
-            v = ngb->getHeuristic(userplayer);
+            v = ngb->setHeuristic(userplayer, depth, (gb->number_P1_pieces+gb->number_P2_pieces), enterdepth);
             delete ngb;
             return v;
         }
@@ -157,16 +145,13 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
         //std::cout << "isMax: " << isMax << std::endl;
         if(isMax) {
         	//std::cout << "IS MAX!!!! " << userplayer;
-            v = -2000000;
-        	//std::cout << "Size: " << ngb->vectOfGb.size() << std::endl;
+            v = LONG_MIN;
             for(int i = 0; i < ngb->vectOfGb.size(); i++){
-            //	std::cout << " i: " << i;
-                cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, false, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver);
+                cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, false, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver, enterdepth);
                 delete ngb->vectOfGb[i];
                 if(cval > v) {
                 	v = cval;
                 	if(gb->isRoot) {
-                		//std::cout << "SETTING VALUE TO i: " << i << std::endl;
                 		(*bestmoveidx) = i;
                 	}
                 }   
@@ -182,10 +167,10 @@ int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int use
 
         else {
             //std::cout << "IS MIN!!!! " << userplayer;
-            v = 2000000;
+            v = LONG_MAX;
             for(int i = 0; i < ngb->vectOfGb.size(); i++) {
             	//std::cout << "MIN! Depth: " << depth-1 << std::endl;
-                cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, true, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver);
+                cval = alphabeta(ngb->vectOfGb[i], depth - 1, alpha, beta, true, userplayer, pruneNum, bestmoveidx,foo, whoseturn, timeLimit, timeOver, enterdepth);
                 delete ngb->vectOfGb[i];
                 if(cval < v) {
                 	v = cval;
@@ -236,14 +221,73 @@ bool humanvsAI() {
     }
 }
 
+void howMuchTime (int *howmuchtime) {
+    std::string input;
+    while(true) {
+        std::cout << "How many seconds will the AI run?: ";
+        std::cin >> input;
+        if(stoi(input) > 0) {
+            (*howmuchtime) = stoi(input);
+            break;
+        }
+    std::cout << "Invalid entry. Try again" << std::endl;    }
+}
 
+bool readFromFile() {
+    std::string input;
+    while(true) {
+        std::cout << "Read from a file? [y/n]: ";
+        std::cin >> input;
+        if(input == "y") {
+            return true;
+        }
+        if(input == "n") {
+            return false;
+        }
+        std::cout << "Invalid entry. Try again" << std::endl;
+    }
+}
+
+bool fromAFile(unsigned char board[][8], int *whoseturn, int *timeLimit) {
+
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            board[i][j] = 0;
+        }
+    }
+
+    std::string inputfilename = "";
+    std::cout << "Input file name: " << std::endl;
+    std::cin >> inputfilename;
+    std::ifstream inputfile;
+    inputfile.open(inputfilename);
+    if(!inputfile) {
+        std::cout<<"No file" << std::endl;
+    }
+    int inputvalue;
+    for(int i = 0; i < 8; i++) {
+        for(int j = (i+1)%2; j < 8; j+=2) {
+            inputfile >> inputvalue;
+            board[i][j] = inputvalue;
+        }
+    }
+    inputfile >> (*whoseturn);
+    inputfile >> (*timeLimit);
+    inputfile.close();
+    return true;
+}
+
+void clearVectOfGb(GameBoard &gb) {
+    for(int i = 0; i < gb.vectOfGb.size(); i++) {
+        delete gb.vectOfGb[i];
+    }
+    gb.vectOfGb.clear();
+}
 
 int main () {
 
     int turncount = 0;
     int userIDX = 0;
-
-    //bool humanvsAI = true;
 
     int userplayerNum = 2; //default
     int aiNumber = 1;
@@ -257,221 +301,223 @@ int main () {
     int *ptraiidx = &aiIdxBestMove;
 
     int minimaxchoice;
-    //time_t startTime;
-    //time_t endTime;
+
     bool timeOver = false;
     double secondsPassed;
-    int timeLimit = 5;
-    int depth_max = 15;
+    int timeLimit = 2;
+    int depth_max = 10000;
 
     GameBoard playingboard;
     playingboard.isRoot = true;
     GameBoard *playingboardptr = &playingboard;
     initialize(playingboard, userplayerNum);
-    //whoIsHuman(&userplayerNum);
 
-
+    bool fromfile = readFromFile();
+    if(fromfile) {
+        fromAFile(playingboard.board, &whoseturn, &timeLimit);
+        playingboard.setBoard(playingboard.board);
+        playingboard.setPieces();
+    }
 
 
     //=========================== H U M A N    V S     A I ====================================
     if(humanvsAI()) {
-
         std::cout << "Playing Human vs AI" << std::endl;
         whoIsHuman(&userplayerNum, &aiNumber);
-
-        std::cout << "              Turn: " << turncount;
+        if(!fromfile) {
+            howMuchTime(&timeLimit);
+        }
         playingboard.printBoard();
 
         if(userplayerNum == 2) {
+            std::cout << "            Turn: " << turncount++ << std::endl;
+            std::cout<<"=======PLAYER " << aiNumber << " MOVES=========" << std::endl;
             startTime = std::chrono::high_resolution_clock::now();
             timeOver = false;
             for (int i = 1; i < depth_max; i++) {
                 if(!timeOver) {
-                    std::cout << "Reached depth: " << i << std::endl;
-                    minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+                    minimaxchoice = alphabeta(playingboardptr, i, LONG_MIN, LONG_MAX, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver, i);
                 }
                 else {
-                    std::cout << "Reached depth: " << i << std::endl;
+                    std::cout << "Reached depth: " << i-1 << std::endl;
+                    endTime = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> secondsPassed = endTime-startTime;
+                    std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
                     break;
                 }
             }
+            if(!timeOver) {
+                std::cout << "Reached depth: " << depth_max << std::endl;
+                endTime = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> secondsPassed = endTime-startTime;
+                std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
+            }
+            clearVectOfGb(playingboard);
             num_of_prunes = 0;
             moveListIdx = 0;
-            playingboard.getMovesGeneral(aiNumber, &moveListIdx);
+            playingboard.getMovesGeneralDontDisplayMoves(aiNumber, &moveListIdx);
             moveListIdx = 0;
-            //std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
-            std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
+            //std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
             doUserMove(aiIdxBestMove, playingboard, &whoseturn);
-            for(int i = 0; i < playingboard.vectOfGb.size(); i++) {
-                delete playingboard.vectOfGb[i];
-            }
-            playingboard.vectOfGb.clear();
-            std::cout << std::endl << std::endl << std::endl;
-            //timeOver = false;
+            clearVectOfGb(playingboard);
+            std::cout << std::endl << std::endl;
         }
         while(true){
-            std::cout<<"=======PLAYER " << userplayerNum << " MOVES=========" << std::endl;
-            playingboard.getMovesGeneral(userplayerNum, &moveListIdx);
-            userIDX = requestMoveInput(playingboard.vectOfGb);
-            std::cout << "userIDX: " << userIDX << std::endl;
-            //playingboard.vectOfGb[userIDX]->printBoard();
-            doUserMove(userIDX, playingboard, &whoseturn);
-            moveListIdx = 0;
-            turncount++;
-            std::cout << "              Turn: " << turncount << std::endl;
-
-            //playingboard.getAllP2Moves(true, &moveListIdx);
-            //playingboard.getAllP1Moves();
-            //playingboard.printAllP1Moves();
-            //userIDX = requestMoveInput(playingboard.vectOfGb);
-            //doUserMove(userIDX, playingboard);
+            if(whoseturn == userplayerNum) {
+                std::cout << "            Turn: " << turncount++ << std::endl;
+                std::cout<<"=======PLAYER " << userplayerNum << " MOVES=========" << std::endl;
+                playingboard.getMovesGeneral(userplayerNum, &moveListIdx);
+                userIDX = requestMoveInput(playingboard.vectOfGb);
+                moveListIdx = 0;
+                doUserMove(userIDX, playingboard, &whoseturn);
+                moveListIdx = 0;
+                turncount++;
+            }
 
         //IDDFS
-            startTime = std::chrono::high_resolution_clock::now();
-            timeOver = false;
-            for (int i = 1; i < depth_max; i++) {
-                if(!timeOver) {
-                    std::cout << "Reached depth: " << i << std::endl;
-                    minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+            else{
+                std::cout << "            Turn: " << turncount++ << std::endl;
+                std::cout<<"=======PLAYER " << aiNumber << " MOVES=========" << std::endl;
+                
+                playingboard.getMovesGeneral(aiNumber, &moveListIdx);
+                if(playingboard.vectOfGb.size()==1) {
+                    std::cout << "AI picked the only move." << std::endl;
+                    doUserMove(0, playingboard, &whoseturn);
+                    moveListIdx = 0;
                 }
-                else {
-                    std::cout << "Reached depth: " << i << std::endl;
-                    break;
+                else{
+                    clearVectOfGb(playingboard);
+                    startTime = std::chrono::high_resolution_clock::now();
+                    timeOver = false;
+                    for (int i = 1; i < depth_max; i++) {
+                        if(!timeOver) {
+                            minimaxchoice = alphabeta(playingboardptr, i, LONG_MIN, LONG_MAX, true, userplayerNum, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver, i);
+                        }
+                        else {
+                            std::cout << "Reached depth: " << i-1 << std::endl;
+                            endTime = std::chrono::high_resolution_clock::now();
+                            std::chrono::duration<double> secondsPassed = endTime-startTime;
+                            std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
+                            break;
+                        }
+                    }
+                    if(!timeOver) {
+                        std::cout << "Reached depth: " << depth_max << std::endl;
+                        endTime = std::chrono::high_resolution_clock::now();
+                        std::chrono::duration<double> secondsPassed = endTime-startTime;
+                        std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
+                    }
+                    clearVectOfGb(playingboard);
+                    moveListIdx = 0;
+                    playingboard.getMovesGeneralDontDisplayMoves(aiNumber, &moveListIdx);
+                    moveListIdx = 0;
+                    //std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
+                    doUserMove(aiIdxBestMove, playingboard, &whoseturn);
                 }
             }
-            num_of_prunes = 0;
-            moveListIdx = 0;
-            playingboard.getMovesGeneral(aiNumber, &moveListIdx);
-            moveListIdx = 0;
-            //std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
-            std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
-            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
-            for(int i = 0; i < playingboard.vectOfGb.size(); i++) {
-                delete playingboard.vectOfGb[i];
-            }
-            playingboard.vectOfGb.clear();
-            std::cout << std::endl << std::endl << std::endl;
-
-
+            std::cout << std::endl << std::endl;
             if(playingboard.isWin(whoseturn) != 0) {
-                std::cout << "GAME OVER BY: " << playingboard.isWin(whoseturn) << std::endl;
+                std::cout << "GAME OVER BY!" << std::endl;
+                switch(playingboard.isWin(whoseturn)) {
+                    case 1: std::cout << "Player " << whoseturn << " has no more moves!" << std::endl; break;
+                    case 2: std::cout << "Player 2 has no more pieces!" << std::endl; break;
+                    case 3: std::cout<< " Player 1 has no more pieces!" << std::endl; break;
+                }
                 break;
             }
+            clearVectOfGb(playingboard);
         }
     }
 
+    //=========================== AI    V S     A I ====================================
     else {
+        std::cout << "Playing AI vs AI" << std::endl;
+        if(!fromfile) {
+            howMuchTime(&timeLimit);
+        }
+        playingboard.printBoard();
         int ai2bestchoice = 0;
         while(true){
-            std::cout << "              Turn: " << turncount++ << std::endl;
-            std::cout<<"========AI PLAYER 1==========" << std::endl;
-
-            //Player 1 Moves
-            for (int i = 1; i < depth_max; i++) {
-                //std::cout << std::endl << "depth: " << i << std::endl;
-                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 2, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+            if(whoseturn == 1) {
+                std::cout << "            Turn: " << turncount++ << std::endl;
+                std::cout<<"=======PLAYER 1 MOVES=========" << std::endl;
+                playingboard.getMovesGeneral(1, &moveListIdx);
+                if(playingboard.vectOfGb.size()==1) {
+                    playingboard.printAllP1Moves();
+                    std::cout << "AI picked the only move." << std::endl;
+                    doUserMove(0, playingboard, &whoseturn);
+                    moveListIdx = 0;
+                }
+                else{
+                    clearVectOfGb(playingboard);
+                    startTime = std::chrono::high_resolution_clock::now();
+                    timeOver = false;
+                    for (int i = 1; i < depth_max; i++) {
+                        if(!timeOver) {
+                            minimaxchoice = alphabeta(playingboardptr, i, LONG_MIN, LONG_MAX, true, 2, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver, i);
+                        }
+                        else {
+                            std::cout << "Reached depth: " << i-1 << std::endl;
+                            endTime = std::chrono::high_resolution_clock::now();
+                            std::chrono::duration<double> secondsPassed = endTime-startTime;
+                            std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
+                            break;
+                        }
+                    }
+                    clearVectOfGb(playingboard);
+                    moveListIdx = 0;
+                    playingboard.getMovesGeneralDontDisplayMoves(1, &moveListIdx);
+                    doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+                }
+                std::cout << std::endl;
+                moveListIdx = 0;
             }
-            timeOver = false;
-            playingboard.getMovesGeneral(1, &moveListIdx);
-            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
-            std::cout << std::endl;
-            moveListIdx = 0;
 
-
-            std::cout << "              Turn: " << turncount++ << std::endl;
-            std::cout<<"========AI PLAYER 2==========" << std::endl;
-            //Player 2 Moves
-            for (int i = 1; i < depth_max; i++) {
-                //std::cout << std::endl << "depth: " << i << std::endl;
-                minimaxchoice = alphabeta(playingboardptr, i, -2000000, 2000000, true, 1, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver);
+            else{
+                std::cout << "            Turn: " << turncount++ << std::endl;
+                std::cout<<"=======PLAYER 2 MOVES=========" << std::endl;
+                playingboard.getMovesGeneral(2, &moveListIdx);
+                if(playingboard.vectOfGb.size()==1) {
+                    playingboard.printAllP1Moves();
+                    std::cout << "AI picked the only move." << std::endl;
+                    doUserMove(0, playingboard, &whoseturn);
+                    moveListIdx = 0;
+                }
+                else{
+                    startTime = std::chrono::high_resolution_clock::now();
+                    timeOver = false;
+                    for (int i = 1; i < depth_max; i++) {
+                        if(!timeOver) {
+                            minimaxchoice = alphabeta(playingboardptr, i, LONG_MIN, LONG_MAX, true, 1, &num_of_prunes, &aiIdxBestMove, &moveListIdx, whoseturn, timeLimit, &timeOver, i);
+                        }
+                        else {
+                            std::cout << "Reached depth: " << i-1 << std::endl;
+                            endTime = std::chrono::high_resolution_clock::now();
+                            std::chrono::duration<double> secondsPassed = endTime-startTime;
+                            std::cout << "seconds passed: " << secondsPassed.count() << std::endl;
+                            break;
+                        }
+                    }
+                    clearVectOfGb(playingboard);
+                    moveListIdx = 0;
+                    playingboard.getMovesGeneralDontDisplayMoves(2, &moveListIdx);
+                    doUserMove(aiIdxBestMove, playingboard, &whoseturn);
+                }
+                std::cout << std::endl;
+                moveListIdx = 0;
             }
-            timeOver = false;
-            playingboard.getMovesGeneral(2, &moveListIdx);
-            doUserMove(aiIdxBestMove, playingboard, &whoseturn);
-            std::cout << std::endl;
-            moveListIdx = 0;
 
             if(playingboard.isWin(whoseturn) != 0) {
-                std::cout << "GAME OVER BY: " << playingboard.isWin(whoseturn) << std::endl;
+                std::cout << "=> GAME OVER! <=" << std::endl;
+                switch(playingboard.isWin(whoseturn)) {
+                    case 1: std::cout << "Player " << whoseturn << " has no more moves!" << std::endl; break;
+                    case 2: std::cout << "Player 2 has no more pieces!" << std::endl; break;
+                    case 3: std::cout<< " Player 1 has no more pieces!" << std::endl; break;
+                }
                 break;
             }
-
-            std::cin.get();
+            clearVectOfGb(playingboard);
         }
     }
-
-
-
-    //playingboard.setBoard(playingboard.vectOfGb[aiIdxBestMove]->board);
-    
-
-    //std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
-    //playingboard.printBoard();
-
-
-//IDDFS END
-
-
-    /*playingboard.vectOfGb.clear();
-    std::cout << "size: " << playingboard.vectOfGb.size() << std::endl;
-
-    std::cout << "vectsize: " << playingboard.vectOfGb.size() << "   minimax: " << minimaxchoice << "   prunes: " << num_of_prunes << "   index of best move: " << aiIdxBestMove<< std::endl;
-*/
-    /*std::cout<<"=======POSSIBLE MOVES=========" << std::endl;
-    for(int i = 0; i < playingboard.vectOfGb.size(); i++) {
-        playingboard.vectOfGb[i]->printBoard();
-        std::cout << "HEURISTIC: " << playingboard.vectOfGb[i]->getHeuristic(userplayerNum) << std::endl;
-    }*/
-
-	//playingboard.setBoard(playingboard.vectOfGb[aiIdxBestMove]->board);
-	//playingboard.printBoard();
-    
-
-    //playingboard.printAllP1Moves();
-    //playingboard.printBoard();
-    //std::cout << playingboardptr << std::endl;
-    //std::cout<<"=======PLAYER 2 MOVES=========" << std::endl;
-    //playingboard.getAllP2Moves();
-
-
-    //playingboard.printP1MoveList();
-    //std::cout << playingboard.hasAJump << std::endl;
-
-
-    //doTestNextMove(playingboard);
-    //playingboard.printPiece();
-    //P1NextBoards p1(playingboard);
-    //std::cout<<"DO MOVE P1()"<<std::endl;
-    //p1.doMoveP1();
-    //std::cout<<"PAST DO MOVE P1()"<<std::endl;
-
-    /*std::cout<<"*** all possible boards: " <<p1.size()<<" ***"<<std::endl;
-    for(int i=0; i<p1.size(); ++i) {
-        GameBoard *gb = p1.getBoard(i);
-        gb->printBoard();
-    }*/
-
-
-    //std::cout << "CHOOSE BOARD getNextSteps(idx)" << std::endl;
-    //GameBoard *pgb = new GameBoard(playingboard);
-    //pgb->printBoard();
-    //std::cout<<"CREATED *pgb"<<std::endl;
-
-    /*NextSteps *ns = p1.getNextSteps(1);
-    for(int i=0; i<ns->steps.size(); ++i) {
-        Step t = ns->steps[i];
-        pgb->doMove(t.start, t.end);
-    }*/
-    //pgb->printBoard();
-    //std::cout << "Your Possible Moves" << std::endl;
-    //p1.displayAllMoves();
-    //std::cout << "ALL MOVES DISPLAYED" << std::endl;
-
-    //int choiceIdx = requestMoveInput();
-    //GameBoard *gb = p1.getBoard(2);
-    //playingboard.setBoard(gb->board);
-    //playingboard.printBoard();
-    //ns->print();
     return 0;
-
 }

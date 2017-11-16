@@ -9,8 +9,6 @@
 #include <iostream>
 #include <vector>
 
-//#include "Moves.h"
-
 namespace std {
     template <typename T>
     std::string to_string(T val) {
@@ -110,16 +108,17 @@ public:
     XY XYMovesList[12]; //Cannot have more than 12 jumps!
     XY XYMovesList2[12]; //Cannot have more than 12 jumps!
     int pathlength;
-    //int moveListIdx = 0;
-    //std::vector<std::vector<Moves>> listOfMoves;
 	std::vector<PieceSteps *> listOfMoves;
 	PieceSteps *currentPieceSteps;
 
 
     GameBoard(){}
     void setBoard(unsigned char myboard[][8]);
-    void setHeuristic(int usernum);
-    int getHeuristic(int usernum) {setHeuristic(usernum); return heuristicValue;}
+    int pieceValue(int usernum);
+    int kingDist(int usernum);
+    int lessPieces(int currentnumofpieces, int usernum);
+    int positioningWeight(int usernum);
+    long setHeuristic(int usernum, int currdepth, int currpiece, int startingdepth);
 
     void setPieces();
     XY* getP1Pieces() {return P1_pieces;}
@@ -137,6 +136,8 @@ public:
     void getAllP2Moves(bool requestMove, int *moveListIdx);
 
     void getMovesGeneral(int userplayernum, int *idx);
+    void getMovesGeneralDontDisplayMoves(int userplayernum, int *idx);
+
 
 
     void printAllP1Moves();
@@ -146,12 +147,9 @@ public:
     void printInformation();
 
     int isWin(int whoseturn);
-    //int alphabeta(GameBoard *gb, int depth, int alpha, int beta, bool isMax, int userplayer);
-
 
     void flipBoard();
 
-    ///debug
     bool SameAsReg(GameBoard *parent);
 
 
